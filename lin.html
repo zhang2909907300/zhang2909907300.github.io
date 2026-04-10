@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>致林心仪 · 偏爱</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #ffebee, #f8bbd0, #e1bee7);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Noto Serif SC', 'KaiTi', 'Microsoft YaHei', serif;
+      position: relative;
+      color: #fff;
+    }
+
+    /* 跳动的爱心 */
+    .pulsing-heart {
+      font-size: 60px;
+      color: #e91e63;
+      animation: pulse 1.5s infinite ease-in-out;
+      margin-bottom: 30px;
+      text-shadow: 0 0 15px rgba(233, 30, 99, 0.7);
+      z-index: 2;
+    }
+
+    /* 主告白语 */
+    .main-message {
+      font-size: 28px;
+      color: #c2185b;
+      text-align: center;
+      max-width: 90%;
+      line-height: 1.5;
+      text-shadow:
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+      margin-bottom: 40px;
+      z-index: 2;
+    }
+
+    /* 底部提问 */
+    .question {
+      font-size: 24px;
+      color: #880e4f;
+      font-weight: bold;
+      text-align: center;
+      text-shadow:
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+      z-index: 2;
+    }
+
+    /* 音乐提示 */
+    .music-tip {
+      position: absolute;
+      bottom: 20px;
+      font-size: 14px;
+      color: #d81b60;
+      opacity: 0.8;
+      z-index: 2;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    @media (max-width: 600px) {
+      .pulsing-heart { font-size: 50px; }
+      .main-message { font-size: 24px; }
+      .question { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 背景音乐：免版权钢琴版（风格类似《偏爱》） -->
+  <audio id="bgMusic" preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8a9c3d0c9f.mp3?filename=gentle-piano-love-music-113547.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 跳动的红色爱心 ❤️ -->
+  <div class="pulsing-heart">❤️</div>
+
+  <!-- 主告白语 -->
+  <div class="main-message">林心仪，你是我生命中最美的遇见</div>
+
+  <!-- 底部提问 -->
+  <div class="question">愿意做我女朋友吗？</div>
+
+  <!-- 提示 -->
+  <div class="music-tip">🎵 点击页面任意位置播放《偏爱》钢琴版</div>
+
+  <script>
+    const audio = document.getElementById('bgMusic');
+    let musicPlayed = false;
+
+    // 用户首次点击时播放音乐
+    document.body.addEventListener('click', () => {
+      if (!musicPlayed) {
+        audio.volume = 0.6;
+        audio.play().then(() => {
+          musicPlayed = true;
+          document.querySelector('.music-tip').textContent = "🎶 音乐播放中...";
+        }).catch(e => {
+          alert("请允许浏览器播放声音 ❤️");
+        });
+      }
+    });
+  </script>
+</body>
+</html>
