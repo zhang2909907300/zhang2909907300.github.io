@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>致曹思仪</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #fff9f9, #fde0e6, #f5d0e9);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: "Microsoft YaHei", "KaiTi", sans-serif;
+      color: #d81b60;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+    canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+    .heart {
+      font-size: 80px;
+      color: #e91e63;
+      animation: pulse 1.5s infinite ease-in-out;
+      margin-bottom: 25px;
+      text-shadow: 0 0 15px rgba(233, 30, 99, 0.5);
+      z-index: 2;
+      position: relative;
+    }
+    .message {
+      font-size: 26px;
+      max-width: 85%;
+      line-height: 1.5;
+      font-weight: bold;
+      text-shadow:
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+      margin-bottom: 20px;
+      z-index: 2;
+      position: relative;
+    }
+    .question {
+      font-size: 24px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+      margin-bottom: 20px;
+      z-index: 2;
+      position: relative;
+    }
+    .tip {
+      position: absolute;
+      bottom: 25px;
+      background: white;
+      color: #c2185b;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 3;
+    }
+    #audioControls {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4;
+      display: none;
+      background: rgba(255,255,255,0.9);
+      padding: 10px 20px;
+      border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    #audioControls button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin: 0 10px;
+      padding: 5px;
+      border-radius: 20px;
+    }
+    #volumeSlider {
+      width: 150px;
+      height: 20px;
+      margin: 5px 0;
+      border-radius: 10px;
+    }
+    #volumeSlider::-webkit-scrollbar {
+      display: none;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworks"></canvas>
+
+  <div class="heart">❤️</div>
+  <div class="message">曹思仪，好喜欢你</div>
+  <div class="question">愿意做我女朋友吗？</div>
+  <div class="tip" id="tip">👉 点击屏幕播放音乐 + 放烟花</div>
+
+  <!-- 音频播放器 -->
+  <audio id="bgMusic"preload="auto" loop="false">
+    <source src="https://your-oss-bucket.oss-cn-beijing.aliyuncs.com背景音乐.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 自定义控制条 -->
+  <div id="audioControls">
+    <button id="pauseBtn" onclick="pauseEverything()">II 暂停</button>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" oninput="updateVolume(this.value)">
+  </div>
+
+  <script>
+    // 烟花动画控制变量
+    let isFireworkActive = false;
+    let fireworkInterval = null;
+
+    // 音频播放控制变量
+    let audio = document.getElementById('bgMusic');
+    let tip = document.getElementById('tip');
+    let audioControls = document.getElementById('audioControls');
+    let hasStarted = false;
+
+    // 烟花系统
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    // 窗口大小监听
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    // 粒子系统
+    const particles = [];
+    class Particle {
+      constructor(x, y, angle, speed, hue) {
+        this.x = x;
+        this.y = y;
+        this vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.hue = hue;
+        this.alpha = 1;
+        this.friction = 0.95;
+        thisgravity = 0.1;
+        this.radius = Math.random() * 2 + 0.5;
+      }
+
+      update() {
+        this vx *= this摩擦力;
+        this.vy *= this摩擦力;
+        this.vy += thisgravity;
+        this.x += this vx;
+        this.y += this.vy;
+        this.alpha -= 0.008;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${this.hue}, 100%, 60%, ${this.alpha})`;
+        ctx.fill();
+      }
+
+      isDone() {
+        return this.alpha <= 0 || this.y > height;
+      }
+    }
+
+    // 烟花发射函数
+    function launchFirework() {
+      if (!isFireworkActive) return;
+
+      const centerX = width / 2 + (Math.random() - 0.5) * width * 0.7;
+      const centerY = height * 0.3 + Math.random() * height * 0.4;
+      const count = 100 + Math.floor(Math.random() * 60);
+
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 1;
+        const hue = 320 + Math.random() * 80; // 粉紫金
+        particles.push(new Particle(centerX, centerY, angle, speed, hue));
+      }
+    }
+
+    // 动画渲染函数
+    function animate() {
+      ctx.fillStyle = 'rgba(255, 249, 249, 0.1)';
+      ctx.fillRect(0, 0, width, height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].isDone()) {
+          particles.splice(i, 1);
+        }
+      }
+
+      if (isFireworkActive) {
+        requestAnimationFrame(animate);
+      }
+    }
+
+    // 播放控制函数
+    function startEverything() {
+      if (hasStarted) return;
+      hasStarted = true;
+
+      // 显示控制条
+      audioControls.style.display = 'flex';
+
+      // 烟花控制
+      isFireworkActive = true;
+      tip.innerHTML = "⚗️ 烟花已开始！将持续30秒...")
+      tip.style.backgroundColor = "#f8bbd0";
+
+      // 立即放烟花
+      launchFirework();
+
+      // 每1.8秒放一次烟花
+      fireworkInterval = setInterval(launchFirework, 1800);
+
+      // 音乐控制
+      audio.play().then(() => {
+        tip.innerHTML = "⚗️ 烟花已开始！将持续30秒... 音乐正在播放"
+        tip.style.backgroundColor = "#f8bbd0";
+
+        // 30秒后停止
+        setTimeout(() => {
+          isFireworkActive = false;
+          clearInterval(fireworkInterval);
+          audio.pause();
+
+          tip.innerHTML = "⚗️ 烟花结束了，但我的心意不会停..."
+          tip.style.backgroundColor = "#e1f5fe";
+        }, 30000);
+
+        // 监听音乐结束事件
+        audio.onended = () => {
+          isFireworkActive = false;
+          clearInterval(fireworkInterval);
+          tip.innerHTML = "⚗️ 音乐已结束..."
+          tip.style.backgroundColor = "#e1f5fe";
+        };
+      }).catch(err => {
+        tip.innerHTML = "⚗️ 音乐加载失败，请检查链接..."
+        console.error("⚗️ 音乐播放失败:", err);
+      });
+    }
+
+    // 暂停函数
+    function pauseEverything() {
+      if (!isFireworkActive) return;
+
+      // 暂停音乐
+      audio.pause();
+
+      // 暂停烟花
+      isFireworkActive = false;
+      clearInterval(fireworkInterval);
+
+      // 更新提示
+      tip.innerHTML = "⚗️ 已暂停..."
+      tip.style.backgroundColor = "#e1f5fe";
+
+      // 更新暂停按钮文字
+      document.getElementById('pauseBtn').textContent = "▶ 播放";
+    }
+
+    // 音量控制函数
+    function updateVolume(value) {
+      audio.volume = value;
+      console.log("⚗️ 音量已调整至:", value);
+    }
+
+    // 点击/触摸事件
+    document.body.addEventListener('click', startEverything);
+    document.body.addEventListener('touchstart', startEverything, { once: true });
+
+    // 初始化烟花动画
+    function initFireworks() {
+      // 隐藏控制条
+      audioControls.style.display = 'none';
+
+      // 重置状态
+      hasStarted = false;
+      isFireworkActive = false;
+      tip.innerHTML = "⚗️ 点击屏幕播放音乐 + 放烟花";
+      tip.style.backgroundColor = "white";
+    }
+
+    // 页面加载完成时初始化
+    window.onload = initFireworks;
+
+    // 添加微信环境iOS的playsinline支持
+    if (/(iPhone|iPad|iPod|Mac)/i.test(navigator.userAgent)) {
+      audio.src += '?playsinline=1';
+      audio播放inline = true;
+      audio webkit-playsinline = true;
+    }
+  </script>
+</body>
+</html>
